@@ -1,10 +1,12 @@
 # Membership Retention/Churn -  Machine Learning Project
 
+Anthony Alvarez
+
 Janette Bennett
 
 Mark Levine 
 
-Anthony Alvarez
+
 
 ## Find a Problem worth Solving, Analyzing, or Visualizing
 In a dataset of over 11,000 subscribers to a monthly weight loss program, is there a correlation between the number of visits and weight loss in pounds to subscribers continuing the monthly subscription.
