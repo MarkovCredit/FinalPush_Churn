@@ -1,7 +1,9 @@
 # Membership Retention/Churn -  Machine Learning Project
 
 Janette Bennett
+
 Mark Levine 
+
 Anthony Alvarez
 
 ## Find a Problem worth Solving, Analyzing, or Visualizing
