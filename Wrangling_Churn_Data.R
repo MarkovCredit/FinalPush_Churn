@@ -116,6 +116,11 @@ df_combined$churn <- as.integer(ifelse(df_combined$`member status`%like% 'Cancel
 
 mean(df_combined$churn)
 
+#We noticed in the data that there are new customers with a first payment date in 2019 who didnt exist in 2018: we need to remove them.
+#We can see that these new 2019 entrants dont have a membership type so we can filter them out:
+
+df_combined <- df_combined %>% filter(!is.na(membership))
+
 
 
 #There arent enough churns based on cancel only; 
@@ -125,10 +130,38 @@ mean(df_combined$churn)
 
 df_combined$months_0orno_visits <- apply(select(df_combined,starts_with("num_visits")),1, function(x) max(length(x[x==0]),
                                                                                                           length(x[x==0])))
-                                      #+ length(x[x==0]))
+#+ length(x[x==0]))
 
 #Now looking for the first months that 0 visits occurred
-df_combined$first_month_0visits <- apply(select(df_combined,starts_with("num_visits"))
+df_combined$first_month_0_visits <- apply(select(df_combined,starts_with("num_visits_")),
+                                          1,function(x) which(x==0)[1])
+df_combined$first_month_0_visits <- apply(select(df_combined,starts_with("num_visits_")),
+                                          1,function(x) which(x==0)[1])
+
+
+#need to create a variabe that says if the first month you had 0 visits was greater than or equal to your first payment month
+#and you have 3 or more months of no visits, then churn. because we only have 11 months of visit data, we need to set index minus 1
+df_combined$first_month_visited <- apply(select(df_combined,starts_with("num_visits_")),1,function(x) which(x>0)[1])
+
+
+#df_combined$firstpay_index <- ifelse(is.na(month(df_combined$`first payment`) = TRUE,df_combined$first_month_visited,
+ #                                          month(df_combined$`first payment`) -1))
+
+
+df_combined$firstpay_index <- ifelse(is.na(df_combined$firstpay_index),df_combined$first_month_visited,
+                                     df_combined$firstpay_index)
+                                     
+df_combined$churn_v2 <- as.integer(ifelse(df_combined$`member status`  %like% 'Cancel' | 
+                                            (df_combined$first_month_0_visits >= df_combined$firstpay_index &
+                                               df_combined$months_0orno_visits > 3),
+                                             1,0))
+
+
+summary(df_combined$churn_v2)
+
+
+
+#
 
 
 
