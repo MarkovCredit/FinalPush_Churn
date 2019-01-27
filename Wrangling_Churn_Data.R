@@ -137,6 +137,14 @@ df_combined$first_month_0_visits <- apply(select(df_combined,starts_with("num_vi
                                           1,function(x) which(x==0)[1])
 df_combined$first_month_0_visits <- apply(select(df_combined,starts_with("num_visits_")),
                                           1,function(x) which(x==0)[1])
+#this function is looking for the most consecutive runs of 0
+df_combined$consec_0_visits <-  apply(select(df_combined,starts_with("num_visits_")), 1, function(x) {
+  r <- rle(x)
+  max(r$lengths[!as.logical(r$values)])
+  
+})
+
+df_combined$consec_0_visits_v2 <- apply(select(df_combined,starts_with("num_visits_")), 1, function(x) anon(x))
 
 
 #need to create a variabe that says if the first month you had 0 visits was greater than or equal to your first payment month
@@ -144,24 +152,36 @@ df_combined$first_month_0_visits <- apply(select(df_combined,starts_with("num_vi
 df_combined$first_month_visited <- apply(select(df_combined,starts_with("num_visits_")),1,function(x) which(x>0)[1])
 
 
-#df_combined$firstpay_index <- ifelse(is.na(month(df_combined$`first payment`) = TRUE,df_combined$first_month_visited,
- #                                          month(df_combined$`first payment`) -1))
+df_combined$firstpay_index <- ifelse(is.na(month(df_combined$`first payment`)) | year(df_combined$`first payment`) == 2019,
+                                     df_combined$first_month_visited,month(df_combined$`first payment`) -1)
 
 
-df_combined$firstpay_index <- ifelse(is.na(df_combined$firstpay_index),df_combined$first_month_visited,
-                                     df_combined$firstpay_index)
-                                     
+#Need to write a function to find if the consecutive no visits were after the customer actually started
+anon <- function(x){
+  r <- rle(x)
+  x <- last(r$values)
+  y <- last(r$lengths)
+  z <- if_else(x == 0 & y > 3,1,0)
+  return(z)
+}
+
+
 df_combined$churn_v2 <- as.integer(ifelse(df_combined$`member status`  %like% 'Cancel' | 
-                                            (df_combined$first_month_0_visits >= df_combined$firstpay_index &
-                                               df_combined$months_0orno_visits > 3),
+                                            (df_combined$first_month_0_visits >= df_combined$first_month_visited &
+                                               df_combined$consec_0_visits > 3) | df_combined$consec_0_visits_v2 == 1,
                                              1,0))
+#this variable needs to be set against the first visit month so that customers who came in later in the year
+#arent penalized
+df_combined$first_month_weightlost <- apply(select(df_combined,starts_with("weightchangeper")),
+                                          1,function(x) which(x < 0)[1]) - df_combined$first_month_visited
 
 
-summary(df_combined$churn_v2)
 
 
 
-#
+#Discretize the variables for prediction
+
+
 
 
 
